@@ -1,0 +1,19 @@
+/dev/block/by-name/miscdata       0660     root      system
+/dev/block/by-name/persist       0660     system      system
+/dev/block/by-name/persistent       0660     system     system
+/dev/block/by-name/sysdumpdb        0660     system     system
+/dev/block/by-name/param	0660	root	system
+
+# Google FRP solution
+/dev/block/by-name/persistent    0660    system    system
+
+# Reactivation lock
+/dev/block/by-name/steady    0660    system    system
+
+# Trusty / TEE / RPMB / secure element nodes (needed by vendor keymaster + gatekeeper
+# + sprdstorageproxyd, which run as system) - copied from stock vendor ueventd.rc
+/dev/trusty-ipc-dev0     0660  system  system
+/dev/tshm                0660  system  system
+/dev/mmcblk0rpmb         0660  system  system
+/dev/rpmb0               0660  system  system
+/dev/grdm                0660  system  system

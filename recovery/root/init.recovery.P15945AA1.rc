@@ -1,0 +1,48 @@
+#add for board init.rc for recovery mode
+#import /init.recovery.common.rc
+
+# ---------------------------------------------------------------------------
+# Decrypt support (metadata encryption + FBE) for gta4lve / UMS512 / Trusty
+# Requires patches/bootable_recovery/0001-*.patch: TWRP mounts the
+# "mounttodecrypt" partitions (/vendor stays mounted via TW_USES_VENDOR_LIBS,
+# vendor_efs via twrp.flags) and then sets twrp.mount_to_decrypt=1, which starts
+# the vendor TEE HALs below right before the metadata decrypt.
+# ---------------------------------------------------------------------------
+on property:twrp.mount_to_decrypt=1
+    # same actions as the stock vendor rc "on post-fs"
+    mkdir /mnt/vendor/efs/DAK 0775 system system
+    mkdir /mnt/vendor/efs/sprd_ss 0770 system system
+    chown system system /mnt/vendor/efs/DAK/gakkeybox
+    chmod 0644 /mnt/vendor/efs/DAK/gakkeybox
+    start vendor.rpmbproxy
+    start vendor.tee_rpc
+    start vendor.keymaster-4-0
+    start vendor.gatekeeper-1-0
+
+service vendor.rpmbproxy /vendor/bin/sprdstorageproxyd -f rpmb -d /dev/trusty-ipc-dev0 -p /mnt/vendor/efs/sprd_ss -r /dev/mmcblk0rpmb
+    group system
+    setenv LD_LIBRARY_PATH /vendor/lib64:/system/lib64
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+service vendor.tee_rpc /vendor/bin/tee_rpc
+    user system
+    group system
+    setenv LD_LIBRARY_PATH /vendor/lib64:/system/lib64
+    disabled
+    seclabel u:r:recovery:s0
+
+service vendor.keymaster-4-0 /vendor/bin/hw/android.hardware.keymaster@4.0-service
+    user system
+    group system drmrpc
+    setenv LD_LIBRARY_PATH /vendor/lib64:/system/lib64
+    disabled
+    seclabel u:r:recovery:s0
+
+service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service.trusty
+    user system
+    group system
+    setenv LD_LIBRARY_PATH /vendor/lib64:/system/lib64
+    disabled
+    seclabel u:r:recovery:s0
